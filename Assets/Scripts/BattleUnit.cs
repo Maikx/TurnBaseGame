@@ -62,6 +62,14 @@ public class BattleUnit : MonoBehaviour
         sequence.Append(image.DOColor(originalColor, 0.1f));
     }
 
+    public void PlaySwitchAnimation()
+    {
+        if (isPlayerUnit)
+            image.transform.DOLocalMoveX(-1210f, 1f);
+        else
+            image.transform.DOLocalMoveX(1210f, 1f);
+    }
+
     public void PlayFaintAnimation()
     {
         var sequence = DOTween.Sequence();

@@ -7,6 +7,13 @@ public class UnitParty : MonoBehaviour
 {
     [SerializeField] List<Unit> units;
 
+    public List<Unit> Units
+    {
+        get
+        {
+            return units;
+        }
+    }
     private void Start()
     {
         foreach (var unit in units)

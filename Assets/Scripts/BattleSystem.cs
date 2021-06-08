@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy }
+public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy, PartyScreen }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -12,12 +12,14 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] BattleHud playerHud;
     [SerializeField] BattleHud enemyHud;
     [SerializeField] BattleDialogueBox dialogueBox;
+    [SerializeField] PartyScreen partyScreen;
 
     public event Action<bool> OnBattleOver;
 
     BattleState state;
     int currentAction;
     int currentMove;
+    int currentMember;
 
     UnitParty playerParty;
     Unit wildUnit;
@@ -36,6 +38,8 @@ public class BattleSystem : MonoBehaviour
         playerHud.SetData(playerUnit.Unit);
         enemyHud.SetData(enemyUnit.Unit);
 
+        partyScreen.Init();
+
         dialogueBox.SetMoveNames(playerUnit.Unit.Moves);
 
         yield return dialogueBox.TypeDialogue($"A wild {enemyUnit.Unit.Base.Name} has appeared.");
@@ -46,8 +50,15 @@ public class BattleSystem : MonoBehaviour
     void PlayerAction()
     {
         state = BattleState.PlayerAction;
-        StartCoroutine(dialogueBox.TypeDialogue("What should i do?"));
+        dialogueBox.SetDialogue("What should i do?");
         dialogueBox.EnableActionSelector(true);
+    }
+
+    void OpenPartyScreen()
+    {
+        state = BattleState.PartyScreen;
+        partyScreen.SetPartyData(playerParty.Units);
+        partyScreen.gameObject.SetActive(true);
     }
 
     void PlayerMove()
@@ -109,7 +120,16 @@ public class BattleSystem : MonoBehaviour
             playerUnit.PlayFaintAnimation();
 
             yield return new WaitForSeconds(2f);
-            OnBattleOver(true);
+
+            var nextUnit = playerParty.GetHealthyUnit();
+            if (nextUnit != null)
+            {
+                OpenPartyScreen();
+            }
+            else
+            {
+                OnBattleOver(true);
+            }
         }
         else
         {
@@ -130,7 +150,7 @@ public class BattleSystem : MonoBehaviour
 
     public void HandleUpdate()
     {
-        if(state == BattleState.PlayerAction)
+        if (state == BattleState.PlayerAction)
         {
             HandleActionSelection();
         }
@@ -138,19 +158,25 @@ public class BattleSystem : MonoBehaviour
         {
             HandleMoveSelection();
         }
+        else if (state == BattleState.PartyScreen)
+        {
+            HandlePartySelection();
+        }
+    }
+
 
         void HandleActionSelection()
         {
             if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                if (currentAction < 1)
-                    ++currentAction;
-            }
+                ++currentAction;
             else if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                if (currentAction > 0)
-                    --currentAction;
-            }
+                --currentAction;
+            else if (Input.GetKeyDown(KeyCode.RightArrow))
+                currentAction += 2;
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+                currentAction -= 2;
+
+            currentAction = Mathf.Clamp(currentAction, 0, 3);
 
             dialogueBox.UpdateActionSelection(currentAction);
 
@@ -161,37 +187,35 @@ public class BattleSystem : MonoBehaviour
                     //Fight
                     PlayerMove();
                 }
-                else if(currentAction == 1)
+                else if (currentAction == 1)
+                {
+                    //Party
+                    OpenPartyScreen();
+                }
+                else if(currentAction == 2)
+                {
+                    //Bag
+                }
+                else if (currentAction == 3)
                 {
                     //Run
                 }
             }
         }
-    }
+    
 
     void HandleMoveSelection()
     {
         if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            if (currentMove < playerUnit.Unit.Moves.Count - 1)
-                ++currentMove;
-        }
+            ++currentMove;
         else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            if (currentMove > 0)
-                --currentMove;
-        }
-
+            --currentMove;
         else if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            if (currentMove < playerUnit.Unit.Moves.Count - 2)
-                currentMove += 2;
-        }
+            currentMove += 2;
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            if (currentMove > 1)
-                currentMove -= 2;
-        }
+            currentMove -= 2;
+
+        currentMove = Mathf.Clamp(currentMove, 0, playerUnit.Unit.Moves.Count - 1);
 
         dialogueBox.UpdateMoveSelection(currentMove, playerUnit.Unit.Moves[currentMove]);
 
@@ -201,5 +225,71 @@ public class BattleSystem : MonoBehaviour
             dialogueBox.EnableDialogueText(true);
             StartCoroutine(PerformPlayerMove());
         }
+        else if(Input.GetKeyDown(KeyCode.X))
+        {
+            dialogueBox.EnabledMoveSelector(false);
+            dialogueBox.EnableDialogueText(true);
+            PlayerAction();
+        }
+    }
+
+    void HandlePartySelection()
+    {
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+            ++currentMember;
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
+            --currentMember;
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+            currentMember += 2;
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            currentMember -= 2;
+
+        currentMember = Mathf.Clamp(currentMember, 0, playerParty.Units.Count - 1);
+
+        partyScreen.UpdateMemberSlection(currentMember);
+
+        if(Input.GetKeyDown(KeyCode.Z))
+        {
+            var selectedMember = playerParty.Units[currentMember];
+            if(selectedMember.HP <= 0)
+            {
+                partyScreen.SetMessageText("It cannot fight right now");
+                return;
+            }
+            if(selectedMember == playerUnit.Unit)
+            {
+                partyScreen.SetMessageText("I'm already fighting dumbass!");
+                return;
+            }
+
+            partyScreen.gameObject.SetActive(false);
+            state = BattleState.Busy;
+            StartCoroutine(SwitchUnit(selectedMember));
+        }
+        else if(Input.GetKeyDown(KeyCode.X))
+        {
+            partyScreen.gameObject.SetActive(false);
+            PlayerAction();
+        }
+    }
+
+    IEnumerator SwitchUnit(Unit newUnit)
+    {
+        if (playerUnit.Unit.HP > 0)
+        {
+            yield return dialogueBox.TypeDialogue($"Alright, take a short rest {playerUnit.Unit.Base.Name}");
+            playerUnit.PlaySwitchAnimation();
+            yield return new WaitForSeconds(2f);
+        }
+
+        playerUnit.Setup(newUnit);
+        playerHud.SetData(newUnit);
+        dialogueBox.SetMoveNames(newUnit.Moves);
+        yield return dialogueBox.TypeDialogue($"You are all of us {newUnit.Base.Name}!");
+
+        StartCoroutine(EnemyMove());
     }
 }
+
+
+
