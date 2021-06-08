@@ -26,9 +26,12 @@ public class Unit
     public Dictionary<Stat, int> Stats { get; private set; }
     public Dictionary<Stat, int> StatBoosts { get; private set; }
 
+    public Queue<string> StatusChanges { get; private set; } = new Queue<string>();
+
     public void Init()
     {
         Moves = new List<Move>();
+        StatusChanges = new Queue<string>();
         foreach (var move in Base.LearnableMoves)
         {
             if (move.Level <= Level)
@@ -41,14 +44,7 @@ public class Unit
         CalculateStats();
         HP = MaxHp;
 
-        StatBoosts = new Dictionary<Stat, int>()
-        {
-            { Stat.Attack, 0 },
-            { Stat.Defence, 0 },
-            { Stat.SpAttack, 0 },
-            { Stat.SpDefence, 0 },
-            { Stat.Speed, 0 },
-        };
+        ResetStatBoost();
     }
 
     void CalculateStats()
@@ -61,6 +57,18 @@ public class Unit
         Stats.Add(Stat.Speed, Mathf.FloorToInt((Base.Speed * Level) / 100f) + 5);
     
         MaxHp = Mathf.FloorToInt((Base.MaxHp * Level) / 100f) + 10;
+    }
+
+    void ResetStatBoost()
+    {
+        StatBoosts = new Dictionary<Stat, int>()
+        {
+            { Stat.Attack, 0 },
+            { Stat.Defence, 0 },
+            { Stat.SpAttack, 0 },
+            { Stat.SpDefence, 0 },
+            { Stat.Speed, 0 },
+        };
     }
 
     int GetStat(Stat stat)
@@ -86,6 +94,15 @@ public class Unit
             var boost = statBoost.boost;
 
             StatBoosts[stat] = Mathf.Clamp(StatBoosts[stat] + boost, -6, 6);
+
+            if (boost > 0)
+            {
+                StatusChanges.Enqueue($"{Base.Name}'s {stat} rose!");
+            }
+            else
+            {
+                StatusChanges.Enqueue($"{Base.Name}'s {stat} fell!");
+            }
 
             Debug.Log($"{stat} has been boosted to {StatBoosts[stat]}");
         }
@@ -155,6 +172,11 @@ public class Unit
     {
         int r = Random.Range(0, Moves.Count);
         return Moves[r];
+    }
+
+    public void OnBattleOver()
+    {
+        ResetStatBoost();
     }
 }
 

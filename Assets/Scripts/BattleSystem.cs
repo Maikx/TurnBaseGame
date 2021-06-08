@@ -40,12 +40,21 @@ public class BattleSystem : MonoBehaviour
 
         yield return dialogueBox.TypeDialogue($"A wild {enemyUnit.Unit.Base.Name} has appeared.");
 
-        ActionSelection();
+        ChooseFirstTurn();
+    }
+
+    void ChooseFirstTurn()
+    {
+        if (playerUnit.Unit.Speed >= enemyUnit.Unit.Speed)
+            ActionSelection();
+        else
+            StartCoroutine(EnemyMove());
     }
 
     void BattleOver(bool won)
     {
         state = BattleState.BattleOver;
+        playerParty.Units.ForEach(u => u.OnBattleOver());
         OnBattleOver(won);
     }
 
@@ -104,14 +113,7 @@ public class BattleSystem : MonoBehaviour
 
         if(move.Base.Category == MoveCategory.Status)
         {
-            var effects = move.Base.Effects;
-            if(effects.Boosts != null)
-            {
-                if (move.Base.Target == MoveTarget.Self)
-                    sourceUnit.Unit.ApplyBoosts(effects.Boosts);
-                else
-                    targetUnit.Unit.ApplyBoosts(effects.Boosts);
-            }
+            yield return RunMoveEffects(move, sourceUnit.Unit, targetUnit.Unit);
         }
         else
         {
@@ -129,6 +131,30 @@ public class BattleSystem : MonoBehaviour
 
             CheckForBattleOver(targetUnit);
             
+        }
+    }
+
+    IEnumerator RunMoveEffects(Move move, Unit source, Unit target)
+    {
+        var effects = move.Base.Effects;
+        if (effects.Boosts != null)
+        {
+            if (move.Base.Target == MoveTarget.Self)
+                source.ApplyBoosts(effects.Boosts);
+            else
+                target.ApplyBoosts(effects.Boosts);
+        }
+
+        yield return ShowStatusChanges(source);
+        yield return ShowStatusChanges(target);
+    }
+
+    IEnumerable ShowStatusChanges(Unit unit)
+    {
+        while (unit.StatusChanges.Count > 0)
+        {
+            var message = unit.StatusChanges.Dequeue();
+            yield return dialogueBox.TypeDialogue(message);
         }
     }
 
@@ -284,16 +310,21 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator SwitchUnit(Unit newUnit)
     {
+        bool currentUnitFainted = true;
         if (playerUnit.Unit.HP > 0)
         {
+            currentUnitFainted = false;
             yield return dialogueBox.TypeDialogue($"Alright, take a short rest {playerUnit.Unit.Base.Name}");
             playerUnit.PlaySwitchAnimation();
             yield return new WaitForSeconds(2f);
         }
 
-        playerUnit.Setup(newUnit);;
+        playerUnit.Setup(newUnit);
         dialogueBox.SetMoveNames(newUnit.Moves);
         yield return dialogueBox.TypeDialogue($"You are all of us {newUnit.Base.Name}!");
+
+        if (currentUnitFainted)
+            ChooseFirstTurn();
 
         StartCoroutine(EnemyMove());
     }

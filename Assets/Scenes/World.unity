@@ -3180,7 +3180,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 100, y: -30}
-  m_SizeDelta: {x: 600, y: 250}
+  m_SizeDelta: {x: 1080, y: 200}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1218199556
 MonoBehaviour:
@@ -4159,7 +4159,9 @@ MonoBehaviour:
   - _base: {fileID: 11400000, guid: de161dd93c6a38e48a4eb23d2fc86a20, type: 2}
     level: 5
   - _base: {fileID: 11400000, guid: de161dd93c6a38e48a4eb23d2fc86a20, type: 2}
-    level: 100
+    level: 42
+  - _base: {fileID: 11400000, guid: de161dd93c6a38e48a4eb23d2fc86a20, type: 2}
+    level: 15
 --- !u!1 &1813216972
 GameObject:
   m_ObjectHideFlags: 0
