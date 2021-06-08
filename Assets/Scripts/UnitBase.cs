@@ -131,6 +131,15 @@ public enum UnitType
 	Fairy
 }
 
+public enum Stat
+{
+	Attack,
+	Defence,
+	SpAttack,
+	SpDefence,
+	Speed
+}
+
 public class TypeChart
 {
 	static float[][] chart =
