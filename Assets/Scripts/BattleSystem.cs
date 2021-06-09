@@ -104,6 +104,14 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator RunMove(BattleUnit sourceUnit, BattleUnit targetUnit, Move move)
     {
+        bool canRunMove = sourceUnit.Unit.OnBeforeMove();
+        if(!canRunMove)
+        {
+            yield return ShowStatusChanges(sourceUnit.Unit);
+            yield break;
+        }
+        yield return ShowStatusChanges(sourceUnit.Unit);
+
         move.PP--;
         yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name} used {move.Base.Name}");
 
@@ -132,17 +140,40 @@ public class BattleSystem : MonoBehaviour
             CheckForBattleOver(targetUnit);
             
         }
+
+        sourceUnit.Unit.OnAfterTurn();
+        yield return ShowStatusChanges(sourceUnit.Unit);
+        yield return sourceUnit.Hud.UpdateHP();
+
+        if (sourceUnit.Unit.HP <= 0)
+        {
+            yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name} Fainted");
+            sourceUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(2f);
+
+            CheckForBattleOver(sourceUnit);
+
+        }
     }
 
     IEnumerator RunMoveEffects(Move move, Unit source, Unit target)
     {
         var effects = move.Base.Effects;
+
+        //Stat Boosting
         if (effects.Boosts != null)
         {
             if (move.Base.Target == MoveTarget.Self)
                 source.ApplyBoosts(effects.Boosts);
             else
                 target.ApplyBoosts(effects.Boosts);
+        }
+
+        //Status Condition
+        if(effects.Status != ConditionID.none)
+        {
+            target.SetStatus(effects.Status);
         }
 
         yield return ShowStatusChanges(source);
