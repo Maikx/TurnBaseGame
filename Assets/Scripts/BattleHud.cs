@@ -7,9 +7,17 @@ public class BattleHud : MonoBehaviour
 {
     [SerializeField] Text nameText;
     [SerializeField] Text levelText;
+    [SerializeField] Text statusText;
     [SerializeField] HpBar hpBar;
 
+    [SerializeField] Color psnColor;
+    [SerializeField] Color brnColor;
+    [SerializeField] Color slpColor;
+    [SerializeField] Color parColor;
+    [SerializeField] Color frzColor;
+
     Unit _unit;
+    Dictionary<ConditionID, Color> statusColors;
 
     public void SetData(Unit unit)
     {
@@ -18,6 +26,31 @@ public class BattleHud : MonoBehaviour
         nameText.text = unit.Base.Name;
         levelText.text = "Lv " + unit.Level;
         hpBar.SetHP((float)unit.HP / unit.MaxHp);
+
+        statusColors = new Dictionary<ConditionID, Color>()
+        {
+            { ConditionID.psn, psnColor},
+            { ConditionID.brn, brnColor},
+            { ConditionID.slp, slpColor},
+            { ConditionID.par, parColor},
+            { ConditionID.frz, frzColor},
+        };
+
+        SetStatusText();
+        _unit.OnStatusChanged += SetStatusText;
+    }
+
+    void SetStatusText()
+    {
+        if (_unit.Status == null)
+        {
+            statusText.text = "";
+        }
+        else
+        {
+            statusText.text = _unit.Status.Id.ToString().ToUpper();
+            statusText.color = statusColors[_unit.Status.Id];
+        }
     }
 
     public IEnumerator UpdateHP()

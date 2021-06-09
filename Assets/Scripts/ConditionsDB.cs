@@ -4,6 +4,16 @@ using UnityEngine;
 
 public class ConditionsDB
 {
+    public static void Init()
+    {
+        foreach (var kvu in Conditions)
+        {
+            var conditionId = kvu.Key;
+            var condition = kvu.Value;
+
+            condition.Id = conditionId;
+        }
+    }
     public static Dictionary<ConditionID, Condition> Conditions { get; set; } = new Dictionary<ConditionID, Condition>()
     {
         {ConditionID.psn,
@@ -94,11 +104,48 @@ public class ConditionsDB
                     return false;
                 }
             }
+        },
+
+        //Volatile Status Conditions
+        {ConditionID.confusion,
+            new Condition()
+            {
+                Name = "Confusion",
+                StartMessage = "has been confused",
+                OnStart = (Unit unit) =>
+                {
+                    //Sleep for 1-4 turns
+                    unit.VolatileStatusTime = Random.Range(1,5);
+                    Debug.Log($"Will be confused for {unit.StatusTime} moves");
+                },
+                OnBeforeMove = (Unit unit) =>
+                {
+                    if(unit.VolatileStatusTime <= 0)
+                    {
+                        unit.CureVolatileStatus();
+                        unit.StatusChanges.Enqueue($"{unit.Base.Name}'snt confused anymore!");
+                        return true;
+                    }
+
+                    unit.VolatileStatusTime--;
+
+                    //50% chance to do a move
+                    if(Random.Range(1,3) == 1)
+                    return true;
+
+                    //Hurt by confusion
+                    unit.StatusChanges.Enqueue($"{unit.Base.Name} is confused");
+                    unit.UpdateHP(unit.MaxHp / 8);
+                    unit.StatusChanges.Enqueue($"It hurt itself due to confusion");
+                    return false;
+                }
+            }
         }
     };
 }
 
 public enum ConditionID
 {
-    none, psn, brn, slp, par, frz
+    none, psn, brn, slp, par, frz,
+    confusion
 }
