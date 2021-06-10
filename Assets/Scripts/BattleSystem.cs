@@ -83,8 +83,15 @@ public class BattleSystem : MonoBehaviour
             playerUnit.Unit.CurrentMove = playerUnit.Unit.Moves[currentMove];
             enemyUnit.Unit.CurrentMove = enemyUnit.Unit.GetRandomMove();
 
+            int playerMovePriority = playerUnit.Unit.CurrentMove.Base.Priority;
+            int enemyMovePriority = enemyUnit.Unit.CurrentMove.Base.Priority;
+
             //Check who goes first
-            bool playerGoesFirst = playerUnit.Unit.Speed >= enemyUnit.Unit.Speed;
+            bool playerGoesFirst = true;
+            if (enemyMovePriority > playerMovePriority)
+                playerGoesFirst = false;
+            else if (enemyMovePriority == playerMovePriority)
+                playerGoesFirst = playerUnit.Unit.Speed >= enemyUnit.Unit.Speed;
 
             var firstUnit = (playerGoesFirst) ? playerUnit : enemyUnit;
             var secondUnit = (playerGoesFirst) ? enemyUnit : playerUnit;
@@ -361,6 +368,9 @@ public class BattleSystem : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.Z))
         {
+            var move = playerUnit.Unit.Moves[currentMove];
+            if (move.PP == 0) return;
+
             dialogueBox.EnabledMoveSelector(false);
             dialogueBox.EnableDialogueText(true);
             StartCoroutine(RunTurns(BattleAction.Move));
