@@ -10,8 +10,9 @@ public class PlayerController : MonoBehaviour
     private bool isMoving;
     private Vector2 input;
     public LayerMask solidObjectsLayer;
+    public LayerMask interactableLayer;
     public LayerMask encounterObjectsLayer;
-    Animator Anim;
+    Animator animator;
 
     public event Action OnEncounter;
 
@@ -24,11 +25,12 @@ public class PlayerController : MonoBehaviour
     {
         Inputs();
         Animations();
+        Interact();
     }
 
     private void Init()
     {
-        Anim = gameObject.GetComponentInChildren<Animator>();
+        animator = gameObject.GetComponentInChildren<Animator>();
     }
 
     private void Inputs()
@@ -42,8 +44,8 @@ public class PlayerController : MonoBehaviour
 
             if (input != Vector2.zero)
             {
-                Anim.SetFloat("Horizontal", input.x);
-                Anim.SetFloat("Vertical", input.y);
+                animator.SetFloat("Horizontal", input.x);
+                animator.SetFloat("Vertical", input.y);
 
                 var targetPos = transform.position;
                 targetPos.x += input.x;
@@ -57,7 +59,22 @@ public class PlayerController : MonoBehaviour
 
     private void Animations()
     {
-        Anim.SetBool("isMoving", isMoving);
+        animator.SetBool("isMoving", isMoving);
+    }
+
+    void Interact()
+    {
+        if(Input.GetKeyDown(KeyCode.Z))
+        {
+            var facingDir = new Vector3(animator.GetFloat("Horizontal"), animator.GetFloat("Vertical"));
+            var interactPos = transform.position + facingDir;
+
+            var collider = Physics2D.OverlapCircle(interactPos, 0.3f, interactableLayer);
+            if(collider != null)
+            {
+                collider.GetComponent<Interactable>()?.Interact();
+            }
+        }
     }
 
     IEnumerator Move(Vector3 targetPos)
@@ -78,7 +95,7 @@ public class PlayerController : MonoBehaviour
 
     private bool isWalkable(Vector3 targetPos)
     {
-        if (Physics2D.OverlapCircle(targetPos, 0.1f, solidObjectsLayer) != null)
+        if (Physics2D.OverlapCircle(targetPos, 0.1f, solidObjectsLayer | interactableLayer) != null)
         {
             return false;
         }
@@ -92,7 +109,7 @@ public class PlayerController : MonoBehaviour
         {
             if(UnityEngine.Random.Range(1, 101) <= 10)
             {
-                Anim.SetBool("isMoving", false);
+                animator.SetBool("isMoving", false);
                 OnEncounter();
             }
         }
