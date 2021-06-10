@@ -313,21 +313,21 @@ public class BattleSystem : MonoBehaviour
 
         void HandleActionSelection()
         {
-            if (Input.GetKeyDown(KeyCode.DownArrow))
+            if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
                 ++currentAction;
-            else if (Input.GetKeyDown(KeyCode.UpArrow))
+            else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
                 --currentAction;
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
+            else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
                 currentAction += 2;
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
                 currentAction -= 2;
 
             currentAction = Mathf.Clamp(currentAction, 0, 3);
 
             dialogueBox.UpdateActionSelection(currentAction);
 
-            if(Input.GetKeyDown(KeyCode.Z))
-            {
+            if(Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Return))
+        {
                 if(currentAction == 0)
                 {
                     //Fight
@@ -353,20 +353,20 @@ public class BattleSystem : MonoBehaviour
 
     void HandleMoveSelection()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
             ++currentMove;
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
             --currentMove;
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             currentMove += 2;
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             currentMove -= 2;
 
         currentMove = Mathf.Clamp(currentMove, 0, playerUnit.Unit.Moves.Count - 1);
 
         dialogueBox.UpdateMoveSelection(currentMove, playerUnit.Unit.Moves[currentMove]);
 
-        if(Input.GetKeyDown(KeyCode.Z))
+        if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Return))
         {
             var move = playerUnit.Unit.Moves[currentMove];
             if (move.PP == 0) return;
@@ -375,7 +375,7 @@ public class BattleSystem : MonoBehaviour
             dialogueBox.EnableDialogueText(true);
             StartCoroutine(RunTurns(BattleAction.Move));
         }
-        else if(Input.GetKeyDown(KeyCode.X))
+        else if(Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.Escape))
         {
             dialogueBox.EnabledMoveSelector(false);
             dialogueBox.EnableDialogueText(true);
@@ -385,20 +385,20 @@ public class BattleSystem : MonoBehaviour
 
     void HandlePartySelection()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             ++currentMember;
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             --currentMember;
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
             currentMember += 2;
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
             currentMember -= 2;
 
         currentMember = Mathf.Clamp(currentMember, 0, playerParty.Units.Count - 1);
 
         partyScreen.UpdateMemberSlection(currentMember);
 
-        if(Input.GetKeyDown(KeyCode.Z))
+        if(Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Return))
         {
             var selectedMember = playerParty.Units[currentMember];
             if(selectedMember.HP <= 0)
@@ -428,7 +428,7 @@ public class BattleSystem : MonoBehaviour
             state = BattleState.Busy;
             StartCoroutine(SwitchUnit(selectedMember));
         }
-        else if(Input.GetKeyDown(KeyCode.X))
+        else if(Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.Escape))
         {
             partyScreen.gameObject.SetActive(false);
             ActionSelection();

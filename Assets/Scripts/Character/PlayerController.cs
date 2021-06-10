@@ -64,7 +64,7 @@ public class PlayerController : MonoBehaviour
 
     void Interact()
     {
-        if(Input.GetKeyDown(KeyCode.Z))
+        if(Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Return))
         {
             var facingDir = new Vector3(animator.GetFloat("Horizontal"), animator.GetFloat("Vertical"));
             var interactPos = transform.position + facingDir;
