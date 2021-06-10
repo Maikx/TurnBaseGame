@@ -38,7 +38,6 @@ public class Unit
     public void Init()
     {
         Moves = new List<Move>();
-        StatusChanges = new Queue<string>();
         foreach (var move in Base.LearnableMoves)
         {
             if (move.Level <= Level)
@@ -77,6 +76,8 @@ public class Unit
             { Stat.SpAttack, 0 },
             { Stat.SpDefence, 0 },
             { Stat.Speed, 0 },
+            { Stat.Accuracy, 0 },
+            { Stat.Evasion, 0 },
         };
     }
 

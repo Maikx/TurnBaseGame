@@ -108,6 +108,7 @@ public class BattleSystem : MonoBehaviour
         if(!canRunMove)
         {
             yield return ShowStatusChanges(sourceUnit.Unit);
+            yield return sourceUnit.Hud.UpdateHP();
             yield break;
         }
         yield return ShowStatusChanges(sourceUnit.Unit);
@@ -115,30 +116,49 @@ public class BattleSystem : MonoBehaviour
         move.PP--;
         yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name} used {move.Base.Name}");
 
-        sourceUnit.PlayAttackAnimation();
-        yield return new WaitForSeconds(1f);
-        targetUnit.PlayHitAnimation();
-
-        if(move.Base.Category == MoveCategory.Status)
+        if (CheckIfMoveHits(move, sourceUnit.Unit, targetUnit.Unit))
         {
-            yield return RunMoveEffects(move, sourceUnit.Unit, targetUnit.Unit);
+
+            sourceUnit.PlayAttackAnimation();
+            yield return new WaitForSeconds(1f);
+            targetUnit.PlayHitAnimation();
+
+            if (move.Base.Category == MoveCategory.Status)
+            {
+                yield return RunMoveEffects(move.Base.Effects, sourceUnit.Unit, targetUnit.Unit, move.Base.Target);
+            }
+            else
+            {
+                var damageDetails = targetUnit.Unit.TakeDamage(move, sourceUnit.Unit);
+                yield return targetUnit.Hud.UpdateHP();
+                yield return ShowDamageDetails(damageDetails);
+            }
+
+            if(move.Base.Secondaries != null && move.Base.Secondaries.Count > 0 && targetUnit.Unit.HP > 0)
+            {
+                foreach (var secondary in move.Base.Secondaries)
+                {
+                    var rnd = UnityEngine.Random.Range(1, 101);
+                    if (rnd <= secondary.Chance)
+                        yield return RunMoveEffects(secondary, sourceUnit.Unit, targetUnit.Unit, secondary.Target);
+                }
+            }
+
+            if (targetUnit.Unit.HP <= 0)
+            {
+                yield return dialogueBox.TypeDialogue($"{targetUnit.Unit.Base.Name} Fainted");
+                targetUnit.PlayFaintAnimation();
+
+                yield return new WaitForSeconds(2f);
+
+                CheckForBattleOver(targetUnit);
+
+            }
+
         }
         else
         {
-            var damageDetails = targetUnit.Unit.TakeDamage(move, sourceUnit.Unit);
-            yield return targetUnit.Hud.UpdateHP();
-            yield return ShowDamageDetails(damageDetails);
-        }
-
-        if (targetUnit.Unit.HP <= 0)
-        {
-            yield return dialogueBox.TypeDialogue($"{targetUnit.Unit.Base.Name} Fainted");
-            targetUnit.PlayFaintAnimation();
-
-            yield return new WaitForSeconds(2f);
-
-            CheckForBattleOver(targetUnit);
-            
+            yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name}'s attack missed");
         }
 
         sourceUnit.Unit.OnAfterTurn();
@@ -155,16 +175,15 @@ public class BattleSystem : MonoBehaviour
             CheckForBattleOver(sourceUnit);
 
         }
+        
     }
 
-    IEnumerator RunMoveEffects(Move move, Unit source, Unit target)
+    IEnumerator RunMoveEffects(MoveEffects effects, Unit source, Unit target, MoveTarget moveTarget)
     {
-        var effects = move.Base.Effects;
-
         //Stat Boosting
         if (effects.Boosts != null)
         {
-            if (move.Base.Target == MoveTarget.Self)
+            if (moveTarget == MoveTarget.Self)
                 source.ApplyBoosts(effects.Boosts);
             else
                 target.ApplyBoosts(effects.Boosts);
@@ -178,6 +197,33 @@ public class BattleSystem : MonoBehaviour
 
         yield return ShowStatusChanges(source);
         yield return ShowStatusChanges(target);
+    }
+
+    bool CheckIfMoveHits(Move move, Unit source, Unit target)
+    {
+        if (move.Base.AlwaysHits)
+            return true;
+
+        float moveAccuracy = move.Base.Accuracy;
+
+        int accuracy = source.StatBoosts[Stat.Accuracy];
+        int evasion = target.StatBoosts[Stat.Evasion];
+
+        var boostValues = new float[] { 1f, 4f / 3f, 5f / 3f, 2f, 7f / 3f, 8f / 3f, 3f };
+
+        if (accuracy > 0)
+            moveAccuracy *= boostValues[accuracy];
+        else
+            moveAccuracy /= boostValues[-accuracy];
+
+        if (evasion > 0)
+            moveAccuracy /= boostValues[evasion];
+        else
+            moveAccuracy *= boostValues[-evasion];
+
+
+
+        return UnityEngine.Random.Range(1, 101) <= moveAccuracy;
     }
 
     IEnumerable ShowStatusChanges(Unit unit)
