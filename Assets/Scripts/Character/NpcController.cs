@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class NpcController : MonoBehaviour, Interactable
@@ -7,6 +8,7 @@ public class NpcController : MonoBehaviour, Interactable
     [SerializeField] Dialogue dialogue;
     [SerializeField] List<Vector2> movementPattern;
     [SerializeField] float timeBetweenPattern;
+    [SerializeField] Sprite characterImageDialogue;
 
     NpcState state;
     float idleTimer = 0f;
@@ -22,7 +24,7 @@ public class NpcController : MonoBehaviour, Interactable
     public void Interact()
     {
         if(state == NpcState.Idle)
-            StartCoroutine(DialogueManager.self.ShowDialogue(dialogue));
+            StartCoroutine(DialogueManager.self.ShowDialogue(dialogue, characterImageDialogue));
     }
 
     private void Update()

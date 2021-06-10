@@ -8,6 +8,7 @@ public class DialogueManager : MonoBehaviour
 {
     [SerializeField] GameObject dialogueBox;
     [SerializeField] Text dialogueText;
+    [SerializeField] Image dialogueImage;
     [SerializeField] int lettersPerSecond;
 
     public event Action OnShowDialogue;
@@ -26,12 +27,13 @@ public class DialogueManager : MonoBehaviour
     }
 
     Dialogue dialogue;
+    Sprite characterImageDialogue;
     int currentLine = 0;
     bool isTyping;
 
     public bool IsShowing { get; private set; }
 
-    public IEnumerator ShowDialogue(Dialogue dialogue)
+    public IEnumerator ShowDialogue(Dialogue dialogue, Sprite characterImageDialogue)
     {
         yield return new WaitForEndOfFrame();
 
@@ -40,6 +42,7 @@ public class DialogueManager : MonoBehaviour
         IsShowing = true;
         this.dialogue = dialogue;
         dialogueBox.SetActive(true);
+        dialogueImage.sprite = characterImageDialogue;
         StartCoroutine(TypeDialogue(dialogue.Lines[0]));
     }
 
