@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 2836371555439234524}
   - component: {fileID: 2836371555439234527}
   - component: {fileID: 1098223176536569889}
+  - component: {fileID: 4970300523585315363}
+  - component: {fileID: 4225244989475108207}
   m_Layer: 8
   m_Name: Npc
   m_TagString: Untagged
@@ -144,3 +146,66 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f57d08b056221b408a6020f222f60fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dialogue:
+    lines:
+    - Hello
+    - Bye bye
+  movementPattern:
+  - {x: 2, y: 0}
+  - {x: 0, y: -2}
+  - {x: -2, y: 0}
+  - {x: 0, y: 2}
+  timeBetweenPattern: 3
+--- !u!114 &4970300523585315363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2836371555439234520}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e025cf66983a314088d128d57dd25d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+--- !u!114 &4225244989475108207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2836371555439234520}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e860506f89b8b694697d48f4e54c4661, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  idleDownSprites:
+  - {fileID: 725388354212799560, guid: 71c32d36ce42ed946ab563e9e5502510, type: 3}
+  idleUpSprites:
+  - {fileID: 8672083681061156551, guid: 6565e7c96deabcd489ff5dc8eba3b366, type: 3}
+  idleRightSprites:
+  - {fileID: -139930723582638026, guid: 42c72a53d0c770749a6263b8cf7f4b78, type: 3}
+  idleLeftSprites:
+  - {fileID: -382420653117534223, guid: 30cf04f293f26cc4695e2d3a13ae0321, type: 3}
+  walkDownSprites:
+  - {fileID: 67314398278307514, guid: 09d880cb6f60a1740ba5295aefb6503b, type: 3}
+  - {fileID: -411874620817740217, guid: 09d880cb6f60a1740ba5295aefb6503b, type: 3}
+  - {fileID: -3987664996127859774, guid: 09d880cb6f60a1740ba5295aefb6503b, type: 3}
+  - {fileID: -3812379851207827116, guid: 09d880cb6f60a1740ba5295aefb6503b, type: 3}
+  walkUpSprites:
+  - {fileID: -2184292403365410254, guid: 12cae9d96dec93343b864bc21245ebbb, type: 3}
+  - {fileID: -7760441455667150058, guid: 12cae9d96dec93343b864bc21245ebbb, type: 3}
+  - {fileID: 7288045570695254421, guid: 12cae9d96dec93343b864bc21245ebbb, type: 3}
+  - {fileID: -306670977375255546, guid: 12cae9d96dec93343b864bc21245ebbb, type: 3}
+  walkRightSprites:
+  - {fileID: 7002613160709631779, guid: 5fe155f06c758994094f54287df2e3ec, type: 3}
+  - {fileID: 1165483782474756078, guid: 5fe155f06c758994094f54287df2e3ec, type: 3}
+  - {fileID: -6524808864791228535, guid: 5fe155f06c758994094f54287df2e3ec, type: 3}
+  - {fileID: 180671087599888963, guid: 5fe155f06c758994094f54287df2e3ec, type: 3}
+  walkLeftSprites:
+  - {fileID: 4670402897568802836, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
+  - {fileID: 3604265010585391256, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
+  - {fileID: 3544576915550436257, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
+  - {fileID: -2861583509829785389, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
