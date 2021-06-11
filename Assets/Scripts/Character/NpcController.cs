@@ -8,7 +8,7 @@ public class NpcController : MonoBehaviour, Interactable
     [SerializeField] Dialogue dialogue;
     [SerializeField] List<Vector2> movementPattern;
     [SerializeField] float timeBetweenPattern;
-    [SerializeField] Sprite characterImageDialogue;
+    [SerializeField] Sprite characterPortrait;
 
     NpcState state;
     float idleTimer = 0f;
@@ -24,7 +24,7 @@ public class NpcController : MonoBehaviour, Interactable
     public void Interact()
     {
         if(state == NpcState.Idle)
-            StartCoroutine(DialogueManager.self.ShowDialogue(dialogue, characterImageDialogue));
+            StartCoroutine(DialogueManager.self.ShowDialogue(dialogue, characterPortrait));
     }
 
     private void Update()
