@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 5913345204897028701}
   - component: {fileID: 3424258952244623396}
   m_Layer: 8
-  m_Name: Trainer
+  m_Name: Visible Unit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -232,12 +232,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2c21c3284881b244b3a22e38e925b6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: Trainer
-  sprite: {fileID: 21300000, guid: e0e9a4c263fe05049b75e03073101ce7, type: 3}
+  name: Staraptor
+  sprite: {fileID: 21300000, guid: 5708cf3042b7af8438f083cd03f56ac7, type: 3}
   characterPortrait: {fileID: 21300000, guid: d89912506cb9a174eafe0298053b35cb, type: 3}
+  joinsParty: 1
   dialogue:
     lines:
     - You will die!
+  dialogueAfterBattle:
+    lines:
+    - Mhhh..
   exclamation: {fileID: 932371825998969225}
   fov: {fileID: 6213543983370661590}
 --- !u!114 &3191209570235157777
@@ -309,6 +313,8 @@ MonoBehaviour:
   units:
   - _base: {fileID: 11400000, guid: 37addc1215e9fab43a2e5a9c4d2033b1, type: 2}
     level: 5
+  - _base: {fileID: 11400000, guid: 37addc1215e9fab43a2e5a9c4d2033b1, type: 2}
+    level: 42
 --- !u!1 &6213543983370661590
 GameObject:
   m_ObjectHideFlags: 0

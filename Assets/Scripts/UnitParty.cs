@@ -27,4 +27,9 @@ public class UnitParty : MonoBehaviour
         return units.Where(x => x.HP > 0).FirstOrDefault();
     }
 
+    public void AddUnit(Unit newUnit)
+    {
+        units.Add(newUnit);
+    }
+
 }

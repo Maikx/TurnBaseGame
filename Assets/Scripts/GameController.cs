@@ -9,6 +9,7 @@ public class GameController : MonoBehaviour
     [SerializeField] PlayerController playerController;
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] Camera worldCamera;
+    TrainerController trainer;
 
     GameState state;
 
@@ -59,11 +60,14 @@ public class GameController : MonoBehaviour
         battleSystem.StartBattle(playerParty, wildUnit);
     }
 
+   
+
     public void StartTrainerBattle(TrainerController trainer)
     {
         state = GameState.Battle;
         battleSystem.gameObject.SetActive(true);
         worldCamera.gameObject.SetActive(false);
+        this.trainer = trainer;
 
         var playerParty = playerController.GetComponent<UnitParty>();
         var trainerParty = trainer.GetComponent<UnitParty>();
@@ -73,6 +77,12 @@ public class GameController : MonoBehaviour
 
     void EndBattle(bool won)
     {
+        if(trainer != null && won == true)
+        {
+            trainer.BattleLost();
+            trainer = null;
+        }
+
         state = GameState.FreeRoam;
         battleSystem.gameObject.SetActive(false);
         worldCamera.gameObject.SetActive(true);

@@ -4,8 +4,8 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 
-public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, PartyScreen, BattleOver }
-public enum BattleAction { Move, SwitchUnit, UseItem, Run}
+public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, PartyScreen, AboutToUse, BattleOver }
+public enum BattleAction { Move, SwitchUnit, UseItem, Run }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -23,6 +23,7 @@ public class BattleSystem : MonoBehaviour
     int currentAction;
     int currentMove;
     int currentMember;
+    bool aboutToUseChoice = true;
 
     UnitParty playerParty;
     UnitParty trainerParty;
@@ -128,6 +129,14 @@ public class BattleSystem : MonoBehaviour
         dialogueBox.EnableActionSelector(false);
         dialogueBox.EnableDialogueText(false);
         dialogueBox.EnabledMoveSelector(true);
+    }
+
+    IEnumerator AboutToUse(Unit newUnit)
+    {
+        state = BattleState.Busy;
+        yield return dialogueBox.TypeDialogue($"{trainer.Name} is about to use {newUnit.Base.Name}. Do you want to switch unit?");
+        state = BattleState.AboutToUse;
+        dialogueBox.EnableChoiceBox(true);
     }
 
     IEnumerator RunTurns(BattleAction playerAction)
@@ -281,11 +290,12 @@ public class BattleSystem : MonoBehaviour
         yield return sourceUnit.Hud.UpdateHP();
         if (sourceUnit.Unit.HP <= 0)
         {
-            yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name} Fainted");
-            sourceUnit.PlayFaintAnimation();
-            yield return new WaitForSeconds(2f);
+                yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name} Fainted");
+                sourceUnit.PlayFaintAnimation();
+                yield return new WaitForSeconds(2f);
 
-            CheckForBattleOver(sourceUnit);
+                CheckForBattleOver(sourceUnit);
+                yield return new WaitUntil(() => state == BattleState.RunningTurn);
         }
     }
 
@@ -343,11 +353,19 @@ public class BattleSystem : MonoBehaviour
                 var _nextUnit = trainerParty.GetHealthyUnit();
                 if(_nextUnit != null)
                 {
-                    StartCoroutine(SendNextTrainerUnit(_nextUnit));
+                    StartCoroutine(AboutToUse(_nextUnit));
                 }
                 else
                 {
-                    BattleOver(true);
+                    if (trainer.JoinsParty)
+                    {
+                        StartCoroutine(JoinParty());
+                    }
+                    else
+                    {
+                        BattleOver(true);
+                        isTrainerBattle = false;
+                    }
                 }
             }
         }
@@ -377,6 +395,10 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.PartyScreen)
         {
             HandlePartySelection();
+        }
+        else if (state == BattleState.AboutToUse)
+        {
+            HandAboutToUse();
         }
     }
 
@@ -500,8 +522,50 @@ public class BattleSystem : MonoBehaviour
         }
         else if(Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.Escape))
         {
+            if(playerUnit.Unit.HP <= 0)
+            {
+                partyScreen.SetMessageText("You have to choose someone with some hp..");
+                return;
+            }
+
             partyScreen.gameObject.SetActive(false);
-            ActionSelection();
+
+            if (prevState == BattleState.AboutToUse)
+            {
+                prevState = null;
+                StartCoroutine(SendNextTrainerUnit());
+            }
+            else
+                ActionSelection();
+        }
+    }
+
+    void HandAboutToUse()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+            aboutToUseChoice = !aboutToUseChoice;
+
+        dialogueBox.UpdateChoiceBox(aboutToUseChoice);
+
+        if(Input.GetKeyDown(KeyCode.Z))
+        {
+            dialogueBox.EnableChoiceBox(false);
+            if(aboutToUseChoice == true)
+            {
+                //Yes option
+                prevState = BattleState.AboutToUse;
+                OpenPartyScreen();
+            }
+            else
+            {
+                //No option
+                StartCoroutine(SendNextTrainerUnit());
+            }
+        }
+        else if(Input.GetKeyDown(KeyCode.X))
+        {
+            dialogueBox.EnableChoiceBox(false);
+            StartCoroutine(SendNextTrainerUnit());
         }
     }
 
@@ -518,17 +582,46 @@ public class BattleSystem : MonoBehaviour
         dialogueBox.SetMoveNames(newUnit.Moves);
         yield return dialogueBox.TypeDialogue($"You are all of us {newUnit.Base.Name}!");
 
-        state = BattleState.RunningTurn;
+        if (prevState == null)
+        {
+            state = BattleState.RunningTurn;
+        }
+        else if(prevState == BattleState.AboutToUse)
+        {
+            prevState = null;
+            StartCoroutine(SendNextTrainerUnit());
+        }
     }
 
-    IEnumerator SendNextTrainerUnit(Unit _nextUnit)
+    IEnumerator SendNextTrainerUnit()
     {
         state = BattleState.Busy;
 
-        enemyUnit.Setup(_nextUnit);
-        yield return dialogueBox.TypeDialogue($"{trainer.Name} send out {_nextUnit.Base.Name}!");
+        var nextUnit = trainerParty.GetHealthyUnit();
+        enemyUnit.Setup(nextUnit);
+        yield return dialogueBox.TypeDialogue($"{trainer.Name} send out {nextUnit.Base.Name}!");
 
         state = BattleState.RunningTurn;      
+    }
+
+    IEnumerator JoinParty()
+    {
+        if (trainer.JoinsParty)
+        {
+            state = BattleState.Busy;
+
+            yield return dialogueBox.TypeDialogue($"{trainer.Name}: you are strong!");
+            playerParty.AddUnit(enemyUnit.Unit);
+            yield return dialogueBox.TypeDialogue($"{trainer.Name} joined your party");
+            BattleOver(true);
+            isTrainerBattle = false;
+        }
+        else if (!trainer.JoinsParty)
+        {
+            state = BattleState.RunningTurn;
+            BattleOver(true);
+            isTrainerBattle = false;
+        }
     }
 }
 
