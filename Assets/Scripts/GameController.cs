@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour
         var playerParty = playerController.GetComponent<UnitParty>();
         var trainerParty = trainer.GetComponent<UnitParty>();
 
-        battleSystem.StartTrainerBattle(playerParty, trainerParty);
+        battleSystem.StartNpcBattle(playerParty, trainerParty);
     }
 
     void EndBattle(bool won)

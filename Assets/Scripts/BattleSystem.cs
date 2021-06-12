@@ -14,7 +14,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] BattleDialogueBox dialogueBox;
     [SerializeField] PartyScreen partyScreen;
     [SerializeField] Image playerImage;
-    [SerializeField] Image trainerImage;
+    [SerializeField] Image npcImage;
 
     public event Action<bool> OnBattleOver;
 
@@ -26,12 +26,14 @@ public class BattleSystem : MonoBehaviour
     bool aboutToUseChoice = true;
 
     UnitParty playerParty;
-    UnitParty trainerParty;
+    UnitParty npcParty;
     Unit wildUnit;
 
-    bool isTrainerBattle = false;
+    bool isNpcBattle = false;
     PlayerController player;
-    NpcController trainer;
+    NpcController npc;
+
+    int escapeAttempts;
 
     public void StartBattle(UnitParty playerParty, Unit wildUnit)
     {
@@ -40,14 +42,14 @@ public class BattleSystem : MonoBehaviour
         StartCoroutine(SetupBattle());
     }
 
-    public void StartTrainerBattle(UnitParty playerParty, UnitParty trainerParty)
+    public void StartNpcBattle(UnitParty playerParty, UnitParty npcParty)
     {
         this.playerParty = playerParty;
-        this.trainerParty = trainerParty;
+        this.npcParty = npcParty;
 
-        isTrainerBattle = true;
+        isNpcBattle = true;
         player = playerParty.GetComponent<PlayerController>();
-        trainer = trainerParty.GetComponent<NpcController>();
+        npc = npcParty.GetComponent<NpcController>();
 
         StartCoroutine(SetupBattle());
     }
@@ -57,7 +59,7 @@ public class BattleSystem : MonoBehaviour
         playerUnit.Clear();
         enemyUnit.Clear();
 
-        if (!isTrainerBattle)
+        if (!isNpcBattle)
         {
             //Wild Unit Battle
             playerUnit.Setup(playerParty.GetHealthyUnit());
@@ -69,23 +71,23 @@ public class BattleSystem : MonoBehaviour
         }
         else
         {
-            //Trainer Battle
+            //Npc Battle
             playerUnit.gameObject.SetActive(false);
             enemyUnit.gameObject.SetActive(false);
 
             playerImage.gameObject.SetActive(true);
-            trainerImage.gameObject.SetActive(true);
+            npcImage.gameObject.SetActive(true);
             playerImage.sprite = player.Sprite;
-            trainerImage.sprite = trainer.Sprite;
+            npcImage.sprite = npc.Sprite;
 
-            yield return dialogueBox.TypeDialogue($"{trainer.Name} is forcing you to battle");
+            yield return dialogueBox.TypeDialogue($"{npc.Name} is forcing you to battle");
 
-            //Send out first pokemon of the trainer
-            trainerImage.gameObject.SetActive(false);
+            //Send out first unit of the npc
+            npcImage.gameObject.SetActive(false);
             enemyUnit.gameObject.SetActive(true);
-            var unitEnemy = trainerParty.GetHealthyUnit();
+            var unitEnemy = npcParty.GetHealthyUnit();
             enemyUnit.Setup(unitEnemy);
-            yield return dialogueBox.TypeDialogue($"{trainer.Name} send out {unitEnemy.Base.Name}");
+            yield return dialogueBox.TypeDialogue($"{npc.Name} send out {unitEnemy.Base.Name}");
 
 
             //Send out first pokemon of the player
@@ -98,6 +100,7 @@ public class BattleSystem : MonoBehaviour
 
         }
 
+        escapeAttempts = 0;
         partyScreen.Init();
         ActionSelection();
     }
@@ -134,7 +137,7 @@ public class BattleSystem : MonoBehaviour
     IEnumerator AboutToUse(Unit newUnit)
     {
         state = BattleState.Busy;
-        yield return dialogueBox.TypeDialogue($"{trainer.Name} is about to use {newUnit.Base.Name}. Do you want to switch unit?");
+        yield return dialogueBox.TypeDialogue($"{npc.Name} is about to use {newUnit.Base.Name}. Do you want to switch unit?");
         state = BattleState.AboutToUse;
         dialogueBox.EnableChoiceBox(true);
     }
@@ -188,6 +191,11 @@ public class BattleSystem : MonoBehaviour
                 var selectedUnit = playerParty.Units[currentMember];
                 state = BattleState.Busy;
                 yield return SwitchUnit(selectedUnit);
+            }
+
+            else if (playerAction == BattleAction.Run)
+            {
+                yield return TryToEscape();
             }
 
             //Enemy Turn
@@ -346,25 +354,25 @@ public class BattleSystem : MonoBehaviour
                 BattleOver(false);
         }
         else
-        {   if (!isTrainerBattle)
+        {   if (!isNpcBattle)
                 BattleOver(true);
             else
             {
-                var _nextUnit = trainerParty.GetHealthyUnit();
+                var _nextUnit = npcParty.GetHealthyUnit();
                 if(_nextUnit != null)
                 {
                     StartCoroutine(AboutToUse(_nextUnit));
                 }
                 else
                 {
-                    if (trainer.JoinsParty)
+                    if (npc.JoinsParty)
                     {
                         StartCoroutine(JoinParty());
                     }
                     else
                     {
                         BattleOver(true);
-                        isTrainerBattle = false;
+                        isNpcBattle = false;
                     }
                 }
             }
@@ -438,6 +446,7 @@ public class BattleSystem : MonoBehaviour
                 else if (currentAction == 3)
                 {
                     //Run
+                    StartCoroutine(RunTurns(BattleAction.Run));
                 }
             }
         }
@@ -533,7 +542,7 @@ public class BattleSystem : MonoBehaviour
             if (prevState == BattleState.AboutToUse)
             {
                 prevState = null;
-                StartCoroutine(SendNextTrainerUnit());
+                StartCoroutine(SendNextNpcUnit());
             }
             else
                 ActionSelection();
@@ -559,13 +568,13 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 //No option
-                StartCoroutine(SendNextTrainerUnit());
+                StartCoroutine(SendNextNpcUnit());
             }
         }
         else if(Input.GetKeyDown(KeyCode.X))
         {
             dialogueBox.EnableChoiceBox(false);
-            StartCoroutine(SendNextTrainerUnit());
+            StartCoroutine(SendNextNpcUnit());
         }
     }
 
@@ -589,38 +598,77 @@ public class BattleSystem : MonoBehaviour
         else if(prevState == BattleState.AboutToUse)
         {
             prevState = null;
-            StartCoroutine(SendNextTrainerUnit());
+            StartCoroutine(SendNextNpcUnit());
         }
     }
 
-    IEnumerator SendNextTrainerUnit()
+    IEnumerator SendNextNpcUnit()
     {
         state = BattleState.Busy;
 
-        var nextUnit = trainerParty.GetHealthyUnit();
+        var nextUnit = npcParty.GetHealthyUnit();
         enemyUnit.Setup(nextUnit);
-        yield return dialogueBox.TypeDialogue($"{trainer.Name} send out {nextUnit.Base.Name}!");
+        yield return dialogueBox.TypeDialogue($"{npc.Name} send out {nextUnit.Base.Name}!");
 
         state = BattleState.RunningTurn;      
     }
 
     IEnumerator JoinParty()
     {
-        if (trainer.JoinsParty)
+        if (npc.JoinsParty)
         {
             state = BattleState.Busy;
 
-            yield return dialogueBox.TypeDialogue($"{trainer.Name}: you are strong!");
+            yield return dialogueBox.TypeDialogue($"{npc.Name}: you are strong!");
             playerParty.AddUnit(enemyUnit.Unit);
-            yield return dialogueBox.TypeDialogue($"{trainer.Name} joined your party");
+            yield return dialogueBox.TypeDialogue($"{npc.Name} joined your party");
             BattleOver(true);
-            isTrainerBattle = false;
+            isNpcBattle = false;
         }
-        else if (!trainer.JoinsParty)
+        else if (!npc.JoinsParty)
         {
             state = BattleState.RunningTurn;
             BattleOver(true);
-            isTrainerBattle = false;
+            isNpcBattle = false;
+        }
+    }
+
+    IEnumerator TryToEscape()
+    {
+        state = BattleState.Busy;
+
+        if(isNpcBattle)
+        {
+            yield return dialogueBox.TypeDialogue($"Where do you think you are going!?");
+            state = BattleState.RunningTurn;
+            yield break;
+        }
+
+        ++escapeAttempts;
+
+        int playerSpeed = playerUnit.Unit.Speed;
+        int enemySpeed = enemyUnit.Unit.Speed;
+
+        if(enemySpeed < playerSpeed)
+        {
+            yield return dialogueBox.TypeDialogue($"Ran away safely!");
+            BattleOver(true);
+        }
+        else
+        {
+            float f = (playerSpeed * 128) / enemySpeed + 30 * escapeAttempts;
+            f = f % 256;
+
+            if(UnityEngine.Random.Range(0, 256) < f)
+            {
+                yield return dialogueBox.TypeDialogue($"Ran away safely!");
+                BattleOver(true);
+            }
+            else
+            {
+                yield return dialogueBox.TypeDialogue($"Can't escape!");
+                state = BattleState.RunningTurn;
+            }
         }
     }
 }
