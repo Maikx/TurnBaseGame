@@ -9,7 +9,7 @@ public class GameController : MonoBehaviour
     [SerializeField] PlayerController playerController;
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] Camera worldCamera;
-    TrainerController trainer;
+    NpcController npc;
 
     GameState state;
 
@@ -26,13 +26,13 @@ public class GameController : MonoBehaviour
         playerController.OnEncounter += StartBattle;
         battleSystem.OnBattleOver += EndBattle;
 
-        playerController.OnEnterTrainersView += (Collider2D trainerCollider) =>
+        playerController.OnEnterTrainersView += (Collider2D npcCollider) =>
         {
-            var trainer = trainerCollider.GetComponentInParent<TrainerController>();
-            if(trainer != null)
+            var npc = npcCollider.GetComponentInParent<NpcController>();
+            if(npc != null)
             {
                 state = GameState.Cutscene;
-                StartCoroutine(trainer.TriggerTrainerBattle(playerController));
+                StartCoroutine(npc.TriggerNpcBattle(playerController));
             }
         };
 
@@ -62,12 +62,12 @@ public class GameController : MonoBehaviour
 
    
 
-    public void StartTrainerBattle(TrainerController trainer)
+    public void StartTrainerBattle(NpcController trainer)
     {
         state = GameState.Battle;
         battleSystem.gameObject.SetActive(true);
         worldCamera.gameObject.SetActive(false);
-        this.trainer = trainer;
+        this.npc = trainer;
 
         var playerParty = playerController.GetComponent<UnitParty>();
         var trainerParty = trainer.GetComponent<UnitParty>();
@@ -77,10 +77,10 @@ public class GameController : MonoBehaviour
 
     void EndBattle(bool won)
     {
-        if(trainer != null && won == true)
+        if(npc != null && won == true)
         {
-            trainer.BattleLost();
-            trainer = null;
+            npc.BattleLost();
+            npc = null;
         }
 
         state = GameState.FreeRoam;

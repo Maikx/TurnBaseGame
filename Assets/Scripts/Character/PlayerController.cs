@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
         Inputs();
         Interact();
         character.HandleUpdate();
+        CheckIfInTrainersView();
     }
 
     private void Init()
@@ -66,7 +67,6 @@ public class PlayerController : MonoBehaviour
     private void OnMoveOver()
     {
         CheckForEncounters();
-        CheckIfInTrainersView();
     }
 
     private void CheckForEncounters()

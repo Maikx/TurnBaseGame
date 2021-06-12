@@ -12,7 +12,7 @@ public class CharacterAnimator : MonoBehaviour
     [SerializeField] List<Sprite> walkUpSprites;
     [SerializeField] List<Sprite> walkRightSprites;
     [SerializeField] List<Sprite> walkLeftSprites;
-    [SerializeField] FacingDirection defaultDirection = FacingDirection.Down;
+    [SerializeField] FacingDirection currentDirection = FacingDirection.Down;
 
     //Parameters
     public float Horizontal { get; set; }
@@ -49,7 +49,6 @@ public class CharacterAnimator : MonoBehaviour
         walkUpAnim = new SpriteAnimator(walkUpSprites, spriteRenderer);
         walkRightAnim = new SpriteAnimator(walkRightSprites, spriteRenderer);
         walkLeftAnim = new SpriteAnimator(walkLeftSprites, spriteRenderer);
-        SetFacingDirection(defaultDirection);
 
         currentAnim = idleDownAnim;
     }
@@ -73,37 +72,41 @@ public class CharacterAnimator : MonoBehaviour
         {
             if (Horizontal == 1)
                 currentAnim = idleRightAnim;
+
             else if (Horizontal == -1)
                 currentAnim = idleLeftAnim;
+
             else if (Vertical == 1)
                 currentAnim = idleUpAnim;
             else if (Vertical == -1)
                 currentAnim = idleDownAnim;
         }
 
+        if(currentAnim != prevAnim)
+        {
+            if (Horizontal == 1)
+                currentDirection = FacingDirection.Right;
+
+            else if (Horizontal == -1)
+                currentDirection = FacingDirection.Left;
+
+            else if (Vertical == 1)
+                currentDirection = FacingDirection.Up;
+            else if (Vertical == -1)
+                currentDirection = FacingDirection.Down;
+        }
+
         if (currentAnim != prevAnim || IsMoving != wasPreviouslyMoving)
             currentAnim.Start();
 
-            currentAnim.HandleUpdate();
+        currentAnim.HandleUpdate();
 
         wasPreviouslyMoving = IsMoving;
     }
 
-    public void SetFacingDirection(FacingDirection dir)
+    public FacingDirection CurrentDirection
     {
-        if (dir == FacingDirection.Right)
-            Horizontal = 1;
-        else if(dir == FacingDirection.Left)
-            Horizontal = -1;
-        else if (dir == FacingDirection.Up)
-            Vertical = 1;
-        else if (dir == FacingDirection.Down)
-            Vertical = -1;
-    }
-
-    public FacingDirection DefaultDirection
-    {
-        get => defaultDirection;
+        get => currentDirection;
     }
 }
 

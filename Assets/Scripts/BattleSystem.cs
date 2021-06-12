@@ -31,7 +31,7 @@ public class BattleSystem : MonoBehaviour
 
     bool isTrainerBattle = false;
     PlayerController player;
-    TrainerController trainer;
+    NpcController trainer;
 
     public void StartBattle(UnitParty playerParty, Unit wildUnit)
     {
@@ -47,7 +47,7 @@ public class BattleSystem : MonoBehaviour
 
         isTrainerBattle = true;
         player = playerParty.GetComponent<PlayerController>();
-        trainer = trainerParty.GetComponent<TrainerController>();
+        trainer = trainerParty.GetComponent<NpcController>();
 
         StartCoroutine(SetupBattle());
     }

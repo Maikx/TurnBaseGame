@@ -234,16 +234,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Staraptor
   sprite: {fileID: 21300000, guid: 5708cf3042b7af8438f083cd03f56ac7, type: 3}
-  characterPortrait: {fileID: 21300000, guid: d89912506cb9a174eafe0298053b35cb, type: 3}
-  joinsParty: 1
+  portrait: {fileID: 21300000, guid: d89912506cb9a174eafe0298053b35cb, type: 3}
+  willFight: 1
+  willJoinParty: 1
   dialogue:
     lines:
     - You will die!
   dialogueAfterBattle:
     lines:
-    - Mhhh..
+    - I love you fighting spirit!
   exclamation: {fileID: 932371825998969225}
   fov: {fileID: 6213543983370661590}
+  movementPattern:
+  - {x: 0, y: 2}
+  - {x: 2, y: 0}
+  - {x: 0, y: -2}
+  - {x: -2, y: 0}
+  timeBetweenPattern: 2
 --- !u!114 &3191209570235157777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -297,7 +304,7 @@ MonoBehaviour:
   - {fileID: 3604265010585391256, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
   - {fileID: 3544576915550436257, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
   - {fileID: -2861583509829785389, guid: 1c907da795c0201479e24f6bffe6029a, type: 3}
-  defaultDirection: 3
+  currentDirection: 1
 --- !u!114 &3424258952244623396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -311,8 +318,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   units:
-  - _base: {fileID: 11400000, guid: 37addc1215e9fab43a2e5a9c4d2033b1, type: 2}
-    level: 5
   - _base: {fileID: 11400000, guid: 37addc1215e9fab43a2e5a9c4d2033b1, type: 2}
     level: 42
 --- !u!1 &6213543983370661590
