@@ -5,10 +5,14 @@ using System;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] string name;
+    [SerializeField] Sprite sprite;
+
     private Vector2 input;
     private Character character;
 
     public event Action OnEncounter;
+    public event Action<Collider2D> OnEnterTrainersView;
 
     private void Awake()
     {
@@ -39,14 +43,14 @@ public class PlayerController : MonoBehaviour
 
             if (input != Vector2.zero)
             {
-                StartCoroutine (character.Move(input, CheckForEncounters));
+                StartCoroutine (character.Move(input, OnMoveOver));
             }
         }
     }
 
     void Interact()
     {
-        if(Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Return))
+        if(Input.GetKeyDown(KeyCode.Z) && !character.Animator.IsMoving || Input.GetKeyDown(KeyCode.Return) && !character.Animator.IsMoving)
         {
             var facingDir = new Vector3(character.Animator.Horizontal, character.Animator.Vertical);
             var interactPos = transform.position + facingDir;
@@ -54,9 +58,15 @@ public class PlayerController : MonoBehaviour
             var collider = Physics2D.OverlapCircle(interactPos, 0.3f, GameLayers.self.InterctableLayer);
             if(collider != null)
             {
-                collider.GetComponent<Interactable>()?.Interact();
+                collider.GetComponent<Interactable>()?.Interact(transform);
             }
         }
+    }
+
+    private void OnMoveOver()
+    {
+        CheckForEncounters();
+        CheckIfInTrainersView();
     }
 
     private void CheckForEncounters()
@@ -69,5 +79,25 @@ public class PlayerController : MonoBehaviour
                 OnEncounter();
             }
         }
+    }
+
+    private void CheckIfInTrainersView()
+    {
+        var collider = Physics2D.OverlapCircle(transform.position, 0.1f, GameLayers.self.FovLayer);
+        if (collider != null)
+        {
+            character.Animator.IsMoving = false;
+            OnEnterTrainersView?.Invoke(collider);
+        }
+    }
+
+    public string Name
+    {
+        get => name;
+    }
+
+    public Sprite Sprite
+    {
+        get => sprite;
     }
 }

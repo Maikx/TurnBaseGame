@@ -40,11 +40,17 @@ public class BattleUnit : MonoBehaviour
         else
             GetComponent<Image>().sprite = Unit.Base.FrontSprite;
 
+        hud.gameObject.SetActive(true);
         hud.SetData(unit);
 
         image.color = originalColor;
 
         PlayerEnterAnimation();
+    }
+
+    public void Clear()
+    {
+        hud.gameObject.SetActive(false);
     }
 
     public void PlayerEnterAnimation()

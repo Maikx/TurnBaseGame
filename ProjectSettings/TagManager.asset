@@ -14,8 +14,8 @@ TagManager:
   - SolidObject
   - EncounterObject
   - Interactable
-  - 
-  - 
+  - Player
+  - Fov
   - 
   - 
   - 

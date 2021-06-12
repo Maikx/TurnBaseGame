@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum GameState { FreeRoam, Battle, Dialogue}
+public enum GameState { FreeRoam, Battle, Dialogue, Cutscene }
 
 public class GameController : MonoBehaviour
 {
@@ -12,8 +12,11 @@ public class GameController : MonoBehaviour
 
     GameState state;
 
+    public static GameController self { get; private set; }
+
     private void Awake()
     {
+        self = this;
         ConditionsDB.Init();
     }
 
@@ -21,6 +24,16 @@ public class GameController : MonoBehaviour
     {
         playerController.OnEncounter += StartBattle;
         battleSystem.OnBattleOver += EndBattle;
+
+        playerController.OnEnterTrainersView += (Collider2D trainerCollider) =>
+        {
+            var trainer = trainerCollider.GetComponentInParent<TrainerController>();
+            if(trainer != null)
+            {
+                state = GameState.Cutscene;
+                StartCoroutine(trainer.TriggerTrainerBattle(playerController));
+            }
+        };
 
         DialogueManager.self.OnShowDialogue += () =>
         {
@@ -44,6 +57,18 @@ public class GameController : MonoBehaviour
         var wildUnit = FindObjectOfType<MapArea>().GetComponent<MapArea>().GetRandomWildUnit();
 
         battleSystem.StartBattle(playerParty, wildUnit);
+    }
+
+    public void StartTrainerBattle(TrainerController trainer)
+    {
+        state = GameState.Battle;
+        battleSystem.gameObject.SetActive(true);
+        worldCamera.gameObject.SetActive(false);
+
+        var playerParty = playerController.GetComponent<UnitParty>();
+        var trainerParty = trainer.GetComponent<UnitParty>();
+
+        battleSystem.StartTrainerBattle(playerParty, trainerParty);
     }
 
     void EndBattle(bool won)

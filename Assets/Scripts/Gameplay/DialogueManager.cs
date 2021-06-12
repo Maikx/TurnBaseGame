@@ -27,13 +27,15 @@ public class DialogueManager : MonoBehaviour
     }
 
     Dialogue dialogue;
+    Action onDialogueFinished;
     Sprite characterImageDialogue;
+
     int currentLine = 0;
     bool isTyping;
 
     public bool IsShowing { get; private set; }
 
-    public IEnumerator ShowDialogue(Dialogue dialogue, Sprite characterImageDialogue)
+    public IEnumerator ShowDialogue(Dialogue dialogue, Sprite characterImageDialogue, Action onFinished = null)
     {
         yield return new WaitForEndOfFrame();
 
@@ -41,6 +43,7 @@ public class DialogueManager : MonoBehaviour
 
         IsShowing = true;
         this.dialogue = dialogue;
+        onDialogueFinished = onFinished;
         dialogueBox.SetActive(true);
         dialogueImage.sprite = characterImageDialogue;
         StartCoroutine(TypeDialogue(dialogue.Lines[0]));
@@ -60,6 +63,7 @@ public class DialogueManager : MonoBehaviour
                 currentLine = 0;
                 IsShowing = false;
                 dialogueBox.SetActive(false);
+                onDialogueFinished?.Invoke();
                 OnCloseDialogue?.Invoke();
             }
         }
