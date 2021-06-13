@@ -39,6 +39,8 @@ public class BattleSystem : MonoBehaviour
     {
         this.playerParty = playerParty;
         this.wildUnit = wildUnit;
+        player = playerParty.GetComponent<PlayerController>();
+        isNpcBattle = false;
         StartCoroutine(SetupBattle());
     }
 
@@ -250,13 +252,7 @@ public class BattleSystem : MonoBehaviour
 
             if (targetUnit.Unit.HP <= 0)
             {
-                yield return dialogueBox.TypeDialogue($"{targetUnit.Unit.Base.Name} Fainted");
-                targetUnit.PlayFaintAnimation();
-
-                yield return new WaitForSeconds(2f);
-
-                CheckForBattleOver(targetUnit);
-
+                yield return HandlePokemonFainted(targetUnit);
             }
 
         }
@@ -298,11 +294,7 @@ public class BattleSystem : MonoBehaviour
         yield return sourceUnit.Hud.UpdateHP();
         if (sourceUnit.Unit.HP <= 0)
         {
-                yield return dialogueBox.TypeDialogue($"{sourceUnit.Unit.Base.Name} Fainted");
-                sourceUnit.PlayFaintAnimation();
-                yield return new WaitForSeconds(2f);
-
-                CheckForBattleOver(sourceUnit);
+            yield return HandlePokemonFainted(sourceUnit);
                 yield return new WaitUntil(() => state == BattleState.RunningTurn);
         }
     }
@@ -343,6 +335,40 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
+    IEnumerator HandlePokemonFainted(BattleUnit faintedUnit)
+    {
+        yield return dialogueBox.TypeDialogue($"{faintedUnit.Unit.Base.Name} Fainted");
+        faintedUnit.PlayFaintAnimation();
+        yield return new WaitForSeconds(2f);
+
+        if(!faintedUnit.IsPlayerUnit)
+        {
+            // Exp Gain
+            int expYield = faintedUnit.Unit.Base.ExpYield;
+            int enemyLevel = faintedUnit.Unit.Level;
+            float npcBonus = (isNpcBattle) ? 1.5f : 1f;
+
+            int expGain = Mathf.FloorToInt((expYield * enemyLevel * npcBonus) / 7);
+            playerUnit.Unit.Exp += expGain;
+            yield return dialogueBox.TypeDialogue($"{playerUnit.Unit.Base.Name} gained {expGain} exp");
+            yield return playerUnit.Hud.SetExpSmooth();
+
+            //Check Level up
+            while (playerUnit.Unit.CheckForLevelUp())
+            {
+                playerUnit.Hud.SetLevel();
+                yield return dialogueBox.TypeDialogue($"{playerUnit.Unit.Base.Name} grew to level {playerUnit.Unit.Level}");
+
+                yield return playerUnit.Hud.SetExpSmooth(true);
+            }
+
+            yield return new WaitForSeconds(1f);
+
+        }
+
+        CheckForBattleOver(faintedUnit);
+    }
+
     void CheckForBattleOver(BattleUnit faintedUnit)
     {
         if (faintedUnit.IsPlayerUnit)
@@ -372,7 +398,6 @@ public class BattleSystem : MonoBehaviour
                     else
                     {
                         BattleOver(true);
-                        isNpcBattle = false;
                     }
                 }
             }
@@ -639,6 +664,7 @@ public class BattleSystem : MonoBehaviour
 
         if(isNpcBattle)
         {
+            dialogueBox.EnableActionSelector(false);
             yield return dialogueBox.TypeDialogue($"Where do you think you are going!?");
             state = BattleState.RunningTurn;
             yield break;

@@ -24,7 +24,32 @@ public class UnitBase : ScriptableObject
 	[SerializeField] int spDefence;
 	[SerializeField] int speed;
 
+	[SerializeField] int expYield;
+	[SerializeField] GrowthRate growthRate;
+
 	[SerializeField] List<LearnableMove> learnableMoves;
+
+	public int GetExpForLevel(int level)
+    {
+		if(growthRate == GrowthRate.Fast)
+        {
+			return 4 * (level * level * level) / 5;
+        }
+		else if (growthRate == GrowthRate.MediumFast)
+        {
+			return level * level * level;
+        }
+		else if (growthRate == GrowthRate.MediumSlow)
+        {
+			return 6 / 5 * (level * level * level) - 15 * (level * level) + 100 * level - 140;
+        }
+		else if (growthRate == GrowthRate.Slow)
+        {
+			return 5 * (level * level * level) / 4;
+        }
+
+		return -1;
+    }
 
 	public string Name
     {
@@ -90,6 +115,10 @@ public class UnitBase : ScriptableObject
     {
 		get { return learnableMoves; }
     }
+
+	public int ExpYield => expYield;
+
+	public GrowthRate GrowthRate => growthRate;
 }
 
 [System.Serializable]
@@ -129,6 +158,11 @@ public enum UnitType
 	Dark,
 	Steel,
 	Fairy
+}
+
+public enum GrowthRate
+{
+	Fast, MediumFast, MediumSlow, Slow
 }
 
 public enum Stat

@@ -20,7 +20,7 @@ public class NpcController : MonoBehaviour, Interactable
     float idleTimer = 0f;
     int currentPattern = 0;
     bool battleLost = false;
-    bool sawPlayer;
+    [HideInInspector]public bool canAttackPlayer;
 
     Character character;
     GameController gameController;
@@ -43,6 +43,7 @@ public class NpcController : MonoBehaviour, Interactable
             idleTimer += Time.deltaTime;
             if (idleTimer > timeBetweenPattern)
             {
+                canAttackPlayer = false;
                 idleTimer = 0f;
                 if (movementPattern.Count > 0)
                     StartCoroutine(Walk());
@@ -65,15 +66,14 @@ public class NpcController : MonoBehaviour, Interactable
         if (transform.position != oldPos)
             currentPattern = (currentPattern + 1) % movementPattern.Count;
 
-        if (sawPlayer)
-            state = NpcState.Fight;
-        else
+            canAttackPlayer = true;
+            
             state = NpcState.Idle;
     }
 
     public IEnumerator TriggerNpcBattle(PlayerController player)
     {
-        sawPlayer = true;
+        state = NpcState.Fight;
         //Show exclamation
         exclamation.SetActive(true);
         yield return new WaitForSeconds(0.5f);
@@ -144,7 +144,7 @@ public class NpcController : MonoBehaviour, Interactable
 
     public void BattleLost()
     {
-        sawPlayer = false;
+        canAttackPlayer = false;
         battleLost = true;
         idleTimer = 0f;
         state = NpcState.Idle;

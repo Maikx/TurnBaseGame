@@ -1967,7 +1967,7 @@ GameObject:
   - component: {fileID: 849569790}
   - component: {fileID: 849569789}
   m_Layer: 0
-  m_Name: TrainerCharacter
+  m_Name: NpcCharacter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2406,7 +2406,7 @@ MonoBehaviour:
   dialogueBox: {fileID: 504532310}
   partyScreen: {fileID: 417634737}
   playerImage: {fileID: 310426153}
-  trainerImage: {fileID: 849569789}
+  npcImage: {fileID: 849569789}
 --- !u!1 &1122454720
 GameObject:
   m_ObjectHideFlags: 0
@@ -3565,7 +3565,7 @@ MonoBehaviour:
   - _base: {fileID: 11400000, guid: de161dd93c6a38e48a4eb23d2fc86a20, type: 2}
     level: 5
   - _base: {fileID: 11400000, guid: de161dd93c6a38e48a4eb23d2fc86a20, type: 2}
-    level: 42
+    level: 20
   - _base: {fileID: 11400000, guid: de161dd93c6a38e48a4eb23d2fc86a20, type: 2}
     level: 15
 --- !u!1 &1813216972
@@ -3612,6 +3612,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1744770459}
     m_Modifications:
+    - target: {fileID: 8526448760884360883, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8526448762351398249, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+        type: 3}
+      propertyPath: expBar
+      value: 
+      objectReference: {fileID: 1832795264}
     - target: {fileID: 8526448762351398250, guid: 8a309460a61a3e347bbbdf8dac0a3694,
         type: 3}
       propertyPath: m_Pivot.x
@@ -3722,8 +3732,19 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyHud
       objectReference: {fileID: 0}
+    - target: {fileID: 8641354562278034098, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8a309460a61a3e347bbbdf8dac0a3694, type: 3}
+--- !u!1 &1832795264 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7863414777341057938, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+    type: 3}
+  m_PrefabInstance: {fileID: 1832795263}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1834693253
 GameObject:
   m_ObjectHideFlags: 0
@@ -9746,6 +9767,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1744770459}
     m_Modifications:
+    - target: {fileID: 8526448760884360883, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8526448762351398249, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+        type: 3}
+      propertyPath: expBar
+      value: 
+      objectReference: {fileID: 2019532908}
     - target: {fileID: 8526448762351398250, guid: 8a309460a61a3e347bbbdf8dac0a3694,
         type: 3}
       propertyPath: m_Pivot.x
@@ -9876,6 +9907,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 658d0419df6acd940a34b6a4deff06e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2019532908 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7863414777341057938, guid: 8a309460a61a3e347bbbdf8dac0a3694,
+    type: 3}
+  m_PrefabInstance: {fileID: 2019532905}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2063830375
 GameObject:
   m_ObjectHideFlags: 0

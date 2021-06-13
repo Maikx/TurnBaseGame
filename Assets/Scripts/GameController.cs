@@ -31,8 +31,11 @@ public class GameController : MonoBehaviour
             var npc = npcCollider.GetComponentInParent<NpcController>();
             if(npc != null)
             {
-                state = GameState.Cutscene;
-                StartCoroutine(npc.TriggerNpcBattle(playerController));
+                if (npc.canAttackPlayer)
+                {
+                    state = GameState.Cutscene;
+                    StartCoroutine(npc.TriggerNpcBattle(playerController));
+                }
             }
         };
 
