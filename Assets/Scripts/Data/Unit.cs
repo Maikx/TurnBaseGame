@@ -47,7 +47,7 @@ public class Unit
             if (move.Level <= Level)
                 Moves.Add(new Move(move.Base));
 
-            if (Moves.Count >= 4)
+            if (Moves.Count >= UnitBase.MaxNumOfMoves)
                 break;
         }
 
@@ -133,6 +133,19 @@ public class Unit
         }
 
         return false;
+    }
+
+    public LearnableMove GetLearnableMoveAtCurrLevel()
+    {
+        return Base.LearnableMoves.Where(x => x.Level == level).FirstOrDefault();
+    }
+
+    public void LearnMove(LearnableMove moveToLearn)
+    {
+        if (Moves.Count > UnitBase.MaxNumOfMoves)
+            return;
+
+        Moves.Add(new Move(moveToLearn.Base));
     }
 
     public int Attack
