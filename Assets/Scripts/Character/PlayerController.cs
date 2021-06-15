@@ -68,17 +68,16 @@ public class PlayerController : MonoBehaviour
 
     private void OnMoveOver()
     {
-        CheckForEncounters();
-    }
-
-    private void CheckForEncounters()
-    {
-        if (Physics2D.OverlapCircle(transform.position - new Vector3(0, offsetY), 0.2f, GameLayers.self.EncounterLayer) != null)
+        var colliders = Physics2D.OverlapCircleAll(transform.position - new Vector3(0, offsetY), 0.2f, GameLayers.self.TriggerableLayers);
+        
+        foreach (var collider in colliders)
         {
-            if(UnityEngine.Random.Range(1, 101) <= 10)
+            var triggerable = collider.GetComponent<IPlayerTriggerable>();
+            if(triggerable != null)
             {
                 character.Animator.IsMoving = false;
-                OnEncounter();
+                triggerable.OnPlayerTriggered(this);
+                break;
             }
         }
     }
